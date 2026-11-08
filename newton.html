@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Calculadora del método de Newton-Raphson para encontrar raíces de f(x)=0.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<title>Método de Newton-Raphson – Calculadora de Métodos Numéricos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=JetBrains+Mono:wght@400;600&family=STIX+Two+Math&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
+<script src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<link rel="stylesheet" href="css/style.css">
+<script>try{var _t=localStorage.getItem('theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+</head>
+<body>
+<button id="theme-btn" class="theme-btn" type="button" aria-label="Cambiar entre modo claro y oscuro">
+  <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.3 11.3 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+</button>
+<header class="page-head">
+  <a class="back" href="index.html">← Inicio</a>
+  <h1>Método de Newton-Raphson</h1>
+  <p>Encuentra raíces de f(x) = 0 usando la recta tangente a partir de un valor inicial x₀.</p>
+</header>
+<main>
+  <section class="card">
+    <details class="info">
+      <summary>Acerca de y cómo usar este método</summary>
+      <p>Encuentra raíces de f(x)=0 usando la recta tangente a partir de un valor inicial x₀. Converge rápido si x₀ está cerca de la raíz.</p>
+      <ol class="steps">
+        <li><div class="n">1</div><div><b>Ingresa los datos</b><span>Escribe f(x) con el teclado matemático y el valor inicial x₀. La derivada f'(x) se calcula automáticamente.</span></div></li>
+        <li><div class="n">2</div><div><b>Revisa las opciones</b><span>Ajusta la tolerancia, el máximo de iteraciones y los decimales si quieres afinar el cálculo.</span></div></li>
+        <li><div class="n">3</div><div><b>Calcula</b><span>Pulsa el botón Calcular. El resultado aparece en un panel junto con la tabla y la gráfica.</span></div></li>
+        <li><div class="n">4</div><div><b>Interpreta el resultado</b><span>Revisa la raíz aproximada, la tabla, la gráfica con tangentes y el paso a paso; cambia x₀ para comparar escenarios.</span></div></li>
+      </ol>
+    </details>
+
+    <div class="grid">
+      <div class="full">
+        <label>f(x) = 0 &nbsp;<small>(escribe con tu teclado: / crea fracción, ^ potencia; o usa los botones)</small></label>
+        <div id="fn" class="kb-display"></div>
+        <div id="kb-fn"></div>
+        <div id="pv-fn" class="kb-pv"></div>
+      </div>
+      <div><label>Valor inicial x₀</label><input id="x0" type="number" step="any" value="1.5"></div>
+      <div><label>Tolerancia</label><input id="toln" type="number" step="any" value="0.0001"></div>
+      <div><label>Máx. iteraciones</label><input id="maxn" type="number" value="50"></div>
+      <div><label>Decimales</label><select id="decn" onchange="setDec(this.value)"><option>3</option><option>4</option><option>5</option><option>6</option><option>8</option></select></div>
+    </div>
+    <div class="btns"><button class="go" onclick="newt()">Calcular</button><button class="clr" onclick="limpiar('n')">Limpiar</button><button class="clr hide" id="pdf-n" onclick="descargarPDF('n','Método de Newton-Raphson')">⬇ PDF</button></div>
+    <div id="rn"></div>
+    <div id="mn" class="msg"></div>
+    <div class="wrap"><table id="tabn" class="hide"><thead><tr><th>n</th><th>xₙ</th><th>f(xₙ)</th><th>f'(xₙ)</th><th>xₙ₊₁</th><th>Ea (%)</th><th>Et (%)</th></tr></thead><tbody></tbody></table></div>
+    <div class="plot-wrap">
+      <div id="fab-n" class="plot-fab hide">
+        <button type="button" class="pf-btn" onclick="simN()">▶ Simulación</button>
+      </div>
+      <canvas id="cn" class="hide"></canvas>
+    </div>
+    <div id="sn"></div>
+  </section>
+</main>
+<footer>Carlos Vargas · Camilo Grimaldo</footer>
+<script src="js/parser.js"></script>
+<script src="js/mathrender.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/plot.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/keypad.js"></script>
+<script src="js/pdf.js"></script>
+<script src="js/newton.js"></script>
+<script src="js/theme.js"></script>
+</body>
+</html>
